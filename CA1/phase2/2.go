@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -31,7 +30,6 @@ func worker(wg *sync.WaitGroup, jobs chan Job, results chan Result) {
 func allocate(inputFilePath string, jobs chan Job) {
 	inputFile, _ := os.Open(inputFilePath)
 	defer inputFile.Close()
-
 	scanner := bufio.NewScanner(inputFile)
 	i := 0
 
@@ -41,6 +39,7 @@ func allocate(inputFilePath string, jobs chan Job) {
 		jobs <- job
 		i++
 	}
+
 	close(jobs)
 }
 
@@ -50,19 +49,26 @@ func createWorkerPool(noOfWorkers int, jobs chan Job, results chan Result) {
 		wg.Add(1)
 		go worker(&wg, jobs, results)
 	}
+
 	wg.Wait()
 	close(results)
 }
 
-func result(results chan Result, done chan bool) {
-	// var output []Result
-	// for res := range results {
-	// 	output = append(output, res)
-	// }
+func result(results chan Result, done chan bool, outputFilePath string) {
+	outputFile, _ := os.Create(outputFilePath)
+	defer outputFile.Close()
+	writer := bufio.NewWriter(outputFile)
+	sortedResult := make(map[int]string)
 
-	for result := range results {
-		fmt.Println(strconv.Itoa(result.job.id), result.job.line, result.formattedLine)
+	for res := range results {
+		sortedResult[res.job.id] = res.formattedLine
 	}
+
+	for i := 0; i < len(sortedResult); i++ {
+		writer.WriteString(sortedResult[i] + "\n")
+	}
+
+	writer.Flush()
 	done <- true
 }
 
@@ -72,7 +78,7 @@ func Run(inputFilePath string, outputFilePath string, noOfWorkers int) {
 	results := make(chan Result, noOfWorkers)
 	go allocate(inputFilePath, jobs)
 	done := make(chan bool)
-	go result(results, done)
+	go result(results, done, outputFilePath)
 	createWorkerPool(noOfWorkers, jobs, results)
 	<-done
 	elapsed := time.Since(startTime)
