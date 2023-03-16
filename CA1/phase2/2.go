@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -53,12 +54,25 @@ func createWorkerPool(noOfWorkers int, jobs chan Job, results chan Result) {
 	close(results)
 }
 
+func result(results chan Result, done chan bool) {
+	// var output []Result
+	// for res := range results {
+	// 	output = append(output, res)
+	// }
+
+	for result := range results {
+		fmt.Println(strconv.Itoa(result.job.id), result.job.line, result.formattedLine)
+	}
+	done <- true
+}
+
 func Run(inputFilePath string, outputFilePath string, noOfWorkers int) {
 	startTime := time.Now()
 	jobs := make(chan Job, noOfWorkers)
 	results := make(chan Result, noOfWorkers)
 	go allocate(inputFilePath, jobs)
 	done := make(chan bool)
+	go result(results, done)
 	createWorkerPool(noOfWorkers, jobs, results)
 	<-done
 	elapsed := time.Since(startTime)
