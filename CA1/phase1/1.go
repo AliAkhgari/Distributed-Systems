@@ -48,6 +48,12 @@ func ConvertToOrdinal(s string) string {
 	return s + ordinalSuffix
 }
 
+func FormatText(text string) string {
+	capitalizedText := CapitalizeInput(text)
+	result := OrdinalizeNumbers(capitalizedText)
+	return result
+}
+
 func Run(inputFilePath string, outputFilePath string) {
 	inputFile, _ := os.Open(inputFilePath)
 	defer inputFile.Close()
@@ -60,8 +66,7 @@ func Run(inputFilePath string, outputFilePath string) {
 
 	for scanner.Scan() {
 		text := scanner.Text()
-		capitalizedText := CapitalizeInput(text)
-		result := OrdinalizeNumbers(capitalizedText)
+		result := FormatText(text)
 		writer.WriteString(result + "\n")
 	}
 
