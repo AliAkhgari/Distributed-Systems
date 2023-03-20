@@ -2,10 +2,12 @@ package phase1
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func CapitalizeInput(input string) string {
@@ -55,6 +57,7 @@ func FormatText(text string) string {
 }
 
 func Run(inputFilePath string, outputFilePath string) {
+	startTime := time.Now()
 	inputFile, _ := os.Open(inputFilePath)
 	defer inputFile.Close()
 
@@ -71,4 +74,6 @@ func Run(inputFilePath string, outputFilePath string) {
 	}
 
 	writer.Flush()
+	elapsed := time.Since(startTime)
+	fmt.Println("total time taken ", elapsed.Seconds(), "seconds")
 }
